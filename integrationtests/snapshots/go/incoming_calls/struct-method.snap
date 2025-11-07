@@ -1,0 +1,12 @@
+---
+
+/TEST_OUTPUT/workspace/consumer.go
+Incoming Calls in File: 1
+Callers: L6:C6 (ConsumerFunction)
+
+ 6|func ConsumerFunction() {
+ 7|	message := HelperFunction()
+ 8|	fmt.Println(message)
+ 9|
+10|	// Use shared struct
+11|	s := &SharedStruct{

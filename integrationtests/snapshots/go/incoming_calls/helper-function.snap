@@ -1,0 +1,25 @@
+---
+
+/TEST_OUTPUT/workspace/another_consumer.go
+Incoming Calls in File: 1
+Callers: L6:C6 (AnotherConsumer)
+
+ 6|func AnotherConsumer() {
+ 7|	// Use helper function
+ 8|	fmt.Println("Another message:", HelperFunction())
+ 9|
+10|	// Create another SharedStruct instance
+11|	s := &SharedStruct{
+
+---
+
+/TEST_OUTPUT/workspace/consumer.go
+Incoming Calls in File: 1
+Callers: L6:C6 (ConsumerFunction)
+
+ 6|func ConsumerFunction() {
+ 7|	message := HelperFunction()
+ 8|	fmt.Println(message)
+ 9|
+10|	// Use shared struct
+11|	s := &SharedStruct{
