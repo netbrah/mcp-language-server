@@ -363,6 +363,30 @@ func (s *mcpServer) registerTools() error {
 		return mcp.NewToolResultText(text), nil
 	})
 
+	incomingCallsTool := mcp.NewTool("incoming_calls",
+		mcp.WithDescription("Find all callers of a function or method throughout the codebase. Shows where the symbol is being called from (incoming calls)."),
+		mcp.WithString("symbolName",
+			mcp.Required(),
+			mcp.Description("The name of the function or method to find callers for (e.g. 'mypackage.MyFunction', 'MyType.MyMethod')"),
+		),
+	)
+
+	s.mcpServer.AddTool(incomingCallsTool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		// Extract arguments
+		symbolName, ok := request.Params.Arguments["symbolName"].(string)
+		if !ok {
+			return mcp.NewToolResultError("symbolName must be a string"), nil
+		}
+
+		coreLogger.Debug("Executing incoming_calls for symbol: %s", symbolName)
+		text, err := tools.FindIncomingCalls(s.ctx, s.lspClient, symbolName)
+		if err != nil {
+			coreLogger.Error("Failed to find incoming calls: %v", err)
+			return mcp.NewToolResultError(fmt.Sprintf("failed to find incoming calls: %v", err)), nil
+		}
+		return mcp.NewToolResultText(text), nil
+	})
+
 	coreLogger.Info("Successfully registered all MCP tools")
 	return nil
 }
