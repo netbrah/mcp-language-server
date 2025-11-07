@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -24,6 +25,8 @@ type config struct {
 	workspaceDir string
 	lspCommand   string
 	lspArgs      []string
+	transport    string
+	httpPort     string
 }
 
 type mcpServer struct {
@@ -39,6 +42,8 @@ func parseConfig() (*config, error) {
 	cfg := &config{}
 	flag.StringVar(&cfg.workspaceDir, "workspace", "", "Path to workspace directory")
 	flag.StringVar(&cfg.lspCommand, "lsp", "", "LSP command to run (args should be passed after --)")
+	flag.StringVar(&cfg.transport, "transport", "stdio", "Transport type: stdio or http")
+	flag.StringVar(&cfg.httpPort, "port", "8080", "HTTP port for SSE transport (only used when transport=http)")
 	flag.Parse()
 
 	// Get remaining args after -- as LSP arguments
@@ -66,6 +71,11 @@ func parseConfig() (*config, error) {
 
 	if _, err := exec.LookPath(cfg.lspCommand); err != nil {
 		return nil, fmt.Errorf("LSP command not found: %s", cfg.lspCommand)
+	}
+
+	// Validate transport type
+	if cfg.transport != "stdio" && cfg.transport != "http" {
+		return nil, fmt.Errorf("invalid transport type: %s (must be 'stdio' or 'http')", cfg.transport)
 	}
 
 	return cfg, nil
@@ -120,6 +130,33 @@ func (s *mcpServer) start() error {
 		return fmt.Errorf("tool registration failed: %v", err)
 	}
 
+	// Choose transport based on configuration
+	if s.config.transport == "http" {
+		coreLogger.Info("Starting MCP server with HTTP/SSE transport on port %s", s.config.httpPort)
+		sseServer := server.NewSSEServer(s.mcpServer)
+
+		// Create a custom HTTP mux to add health endpoint
+		mux := http.NewServeMux()
+
+		// Health check endpoint
+		mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintf(w, `{"status":"ok","version":"v0.0.2"}`)
+		})
+
+		// Mount SSE server on root
+		mux.Handle("/", sseServer)
+
+		// Start HTTP server
+		httpServer := &http.Server{
+			Addr:    ":" + s.config.httpPort,
+			Handler: mux,
+		}
+		return httpServer.ListenAndServe()
+	}
+
+	coreLogger.Info("Starting MCP server with stdio transport")
 	return server.ServeStdio(s.mcpServer)
 }
 

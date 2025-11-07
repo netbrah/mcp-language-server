@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mcp-language-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount your workspace directory here
+      - ./workspace:/workspace:ro
+      # Optional: Mount clangd cache for better performance
+      - clangd-cache:/root/.cache/clangd
+    environment:
+      - LOG_LEVEL=INFO
+      - TRANSPORT=http
+      - PORT=8080
+    # Resource limits to manage memory usage
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    restart: unless-stopped
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  clangd-cache:
+    driver: local

@@ -7,11 +7,44 @@
 
 This is an [MCP](https://modelcontextprotocol.io/introduction) server that runs and exposes a [language server](https://microsoft.github.io/language-server-protocol/) to LLMs. Not a language server for MCP, whatever that would be.
 
+## Features
+
+- **Multiple Transport Options**: Supports both stdio and HTTP/SSE transport
+- **Docker Support**: Ready-to-use Docker images with clangd included
+- **Memory Efficient**: Optimized for containerized deployments with resource limits
+- **Health Checks**: Built-in health monitoring for production deployments
+
 ## Demo
 
 `mcp-language-server` helps MCP enabled clients navigate codebases more easily by giving them access semantic tools like get definition, references, rename, and diagnostics.
 
 ![Demo](demo.gif)
+
+## Quick Start
+
+### Option 1: Docker (Recommended for C/C++)
+
+For C/C++ projects, the easiest way to get started is using Docker with the included clangd:
+
+```bash
+# Clone and build
+git clone https://github.com/isaacphi/mcp-language-server.git
+cd mcp-language-server
+
+# Update docker-compose.yml to mount your workspace
+# Then start the server
+docker-compose up -d
+
+# Access at http://localhost:8080
+```
+
+See [DOCKER.md](DOCKER.md) for detailed Docker deployment guide including:
+- HTTP/SSE transport configuration
+- Performance optimization tips
+- Memory management strategies
+- Production deployment examples
+
+### Option 2: Local Installation
 
 ## Setup
 
