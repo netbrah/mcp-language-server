@@ -1,0 +1,36 @@
+# Git files
+.git
+.gitignore
+.github
+
+# Test files
+integrationtests/test-output
+integrationtests/snapshots
+*_test.go
+
+# Documentation
+*.md
+demo.cast
+demo.gif
+
+# Build artifacts
+mcp-language-server
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+
+# Docker files
+docker-compose.yml
+Dockerfile*
